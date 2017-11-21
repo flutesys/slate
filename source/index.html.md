@@ -3,19 +3,56 @@ title: Flute | Mail - Docs & API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
   - shell
-  - ruby
   - python
   - javascript
 
 toc_footers:
-  - <a href='https://app.flutemail.com/signup'>Sign Up for a Developer Key</a>
+  - <a href='https://dashboard.flutemail.com/signup'>Sign Up for an API Key</a>
 
 search: true
 ---
 
 # Introduction
 
-Welcome to the Flute Mail API Reference and developer docs! Coming soon.
+Welcome to the Flute Mail API Reference and developer docs. Learn how to send email with the Flute
+Mail Web API.
+
+## What is Flute Mail?
+
+Flute Mail is an **email provider aggreator**, a powerful cloud service that allows to 
+configure and use multiple email APIs such as 
+SendGrid, Postmark, SparkPost, or any SMTP server. Just sign up for a Flute Mail account, and hook
+up your API keys from different providers. Then set up your sending "Environments", which allows
+you to configure which providers you wish to load-balance your requests through. For example you
+might have a "Transactional" environment which sends your email through Postmark, and a "Marketing"
+environment for your bulk email.
+
+Distributing your email sending across multiple providers has many benefits: for example you 
+can send all of your transactional email through Postmark for maximum deliverability (they only 
+allow transactional), while sending your marketing email through SparkPost for cost-effective, 
+high-volume sending. It allows you to improve your deliverability, reliability, and capacity.
+
+Flute Mail also supports **automatic failover redundancy**. That means if SparkPost ever goes down or
+experiences delays (it happens surprisingly often) we automatically route your requests to another
+provider that you've configured. Also if we detect provider-caused spam bounces (such as 
+[this](https://mailchannels.zendesk.com/hc/en-us/articles/202191674-Fixing-the-550-5-7-1-RBL-Sender-blocked-IP-or-domain-error)),
+we will automatically send through another provider configured in your environment, ensuring much
+better reliability than any single email provider can ever give you.
+
+## What is an "Environment"?
+
+Hey
+
+# Authentication
+
+# POST /v1/email
+
+# GET /v1/email
+
+# API Limits
+
+# Email Attachments
+
 
 <!-- This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
 
