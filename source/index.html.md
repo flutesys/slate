@@ -19,7 +19,7 @@ Mail Web API.
 
 ## What is Flute Mail?
 
-Flute Mail is an **email provider aggreator**, a powerful cloud service that allows to 
+Flute Mail is an **email provider aggregator**, a powerful cloud service that allows you to 
 configure and use multiple email APIs such as 
 SendGrid, Postmark, SparkPost, or any SMTP server. Just sign up for a Flute Mail account, and hook
 up your API keys from different providers. Then set up your sending "Environments", which allows
@@ -41,15 +41,62 @@ better reliability than any single email provider can ever give you.
 
 ## What is an "Environment"?
 
-Hey
+An Flute Mail environment is a set of 3 things:
+
+- A domain (such as support.yourcompany.com)
+- A set of primary and redundant providers (e.g. SparkPost and Postmark)
+- Associated settings and add-ons. 
+
+Different sending environments allow you to organize your different kinds of email,
+manage your domain reputation (ensure your marketing emails don't affect your critical emails), and
+take advantage of special add-ons and integrations for certain kinds of email.
+
+Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
+
+<aside class="notice">
+Remember — all email sent through an environment must match the FROM domain. This helps to protect your deliverability and sending reputation.
+</aside>
 
 # Authentication
 
+Most API requests must be secured with an Environment-specific API key. These keys can be generated 
+from your Flute Mail dashboard.
+
+The API key must be provided in the JSON body of the request for POST requests, under the JSON key `access_token` (see examples below).
+
+You must use different API keys to send email from different sending environments.
+
+An API key is NOT required for the GET /v1/email endpoint, since this endpoint can only be used to view
+information about specific email ID's (which are secure UUIDs, version 4).
+
 # POST /v1/email
+
+## Send a basic email
+
+```python
+import requests
+
+r = requests.post('https://api.flutemail.com/v1/email', json={
+    "access_token": MY_ENVIRONMENT_NAME_ACCESS_TOKEN,
+    "subject": "test email subject",
+    "text": "test email content",
+    "to": [
+        {
+            "email": "you@example.com",
+        }
+    ],
+    "from": {
+        "name": "Flute",
+        "email": "flute_test_sender@flutemail.io"
+    }
+})
+```
 
 # GET /v1/email
 
-# API Limits
+Get information about an email.
+
+# API Limitations
 
 # Email Attachments
 
