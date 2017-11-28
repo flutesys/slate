@@ -92,14 +92,107 @@ r = requests.post('https://api.flutemail.com/v1/email', json={
 })
 ```
 
-# GET /v1/email
+```javascript
+const request = require('request-promise');
 
-Get information about an email.
+request({
+        method: 'POST',
+        uri: 'https://api.flutemail.com/v1/email',
+        headers: {},
+        body: {
+          "access_token": MY_ENVIRONMENT_NAME_ACCESS_TOKEN,
+          "subject": "test email subject",
+          "text": "test email content",
+          "to": [
+              {
+                  "email": "you@example.com",
+              }
+          ],
+          "from": {
+              "name": "Flute",
+              "email": "flute_test_sender@flutemail.io"
+          }
+        },
+        json: true,
+      })
+```
 
-# API Limitations
+> The above command returns the JSON:
 
-# Email Attachments
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "xxxx-xxxx-xxxx"
+  }
+}
+```
 
+## POST /v1/email
+
+Send an email using the specified environment.
+
+### HTTP Request
+
+`POST https://api.flutemail.com/v1/email`
+
+### Body Parameters
+
+Parameter | Default | Description
+--------- | ------- | -----------
+access_token | required | The environment's access token from the Flute Mail API Tokens dashboard.
+environment | required | The environment's name from the Flute Mail API Tokens dashboard. Must match the environment in `access_token`.
+subject | required | A non-empty string for the email's subject.
+from | required | An object `{name, email}`, where `name` is optional and `email` is required. 
+to | required | An array of objects of `{name, email}`, same as the `from` parameter. At least one must be provided.
+text | `''` | A string for the text content of the email.
+html | `''` | A string for the HTML content of the email.
+cc | `[]` | An array of objects of `{name, email}`, same as the `to` parameter. Emails will be sent to these addresses, and they will be listed under the CC header.
+bcc | `[]` | An array of objects of `{name, email}`, same as the `to` parameter. Emails will be sent to these addresses, but their email addresses will not be visible to recipients.
+attachments | `[]` | An array of objects of `{name, type, data}`. See below for specification.
+images | `[]` | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.
+reply_to | `''` | A string for the `Reply-To` header.
+headers | `{}` | Key-value pairing for any other headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
+
+### API Limitations
+
+- All strings should be in the UTF-8 charset.
+- All emails have open tracking enabled.
+- The `from` email's domain must match the environment's sending domain configured in the Flute Mail dashboard. Otherwise, the API call will fail (see below).
+- At least one provider must be configured under the environment. Otherwise, the API call will fail (see below).
+- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes). Otherwise, the API call will fail (see below).
+- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email. Otherwise, the API call will fail (see below).
+
+### Response
+
+The response will be one of the following:
+
+Status | Description
+--------- | -----------
+success | The email was successfully queued and logged. The ID of the email is in `data/id`.
+fail | One or more inputs was invalid. The status code is between 400 and 499, and the error message is in `data/message`.
+error | Internal server error. The status code is 500 or greater, and the error message is in `message`.
+
+Status codes can be one of the following:
+
+Code | Description
+--------- | -----------
+200 | Successfully queued the email.
+400 | One or more inputs are badly formed.
+401 | Environment not found, does not have providers configured or access token is invalid.
+403 | Access token was not specified.
+413 | Payload is too large (exceeds 20 MB)
+415 | Input is not in JSON format.
+422 | One or more quotas exceeded
+500 | Could not queue the email.
+
+### Email Attachments
+
+Field | Type | Description
+--------- | --------- | -----------
+name | string, required | The filename of the attachment, including extension. Maximum length is 255 bytes. For inline images, this must be unique, and it can be referred to in your HTML content using `<img src="cid:'name'"/>`.
+type | string, required | The MIME type of the attachment; e.g., `text/plain`, `image/jpeg`, `application/pdf`, etc.
+data | string, required | The content of the attachment as a Base64 encoded string. The string should not contain line breaks.
 
 <!-- This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
 
