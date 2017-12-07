@@ -105,6 +105,7 @@ curl --request POST \
 ```
 
 ```python
+TODO
 import requests
 
 r = requests.post('https://api.flutemail.com/v1/email', json={
@@ -124,6 +125,7 @@ r = requests.post('https://api.flutemail.com/v1/email', json={
 ```
 
 ```javascript
+TODO
 const request = require('request-promise');
 
 request({
@@ -148,7 +150,7 @@ request({
       })
 ```
 
-> The above command returns the JSON:
+> You should get a JSON response that looks like this:
 
 ```json
 {
@@ -191,11 +193,12 @@ headers | `{}` | Key-value pairing for any other SMTP headers. Headers such as `
 
 ## API Limitations
 
-- All strings should be in the UTF-8 charset.
-- All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
+- All JSON string payloads should be UTF-8 encoded.
+- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 bytes (characters) in name and email.
 - At least one provider must be configured under the environment. Otherwise, the API call will fail.
-- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes).
-- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email.
+- The entire payload size (all body parameters stringified, including attachments) cannot exceed 6 MB. (We do this to ensure high performance).
+- All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
+
 
 ## Response
 
