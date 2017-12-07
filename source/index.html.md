@@ -14,34 +14,35 @@ search: true
 
 # Introduction
 
-Welcome to the Flute Mail API Reference and developer docs. Learn how to send email with the Flute
-Mail Web API.
+Welcome to the Flute Mail Web API Reference and developer docs.
 
 ## What is Flute Mail?
 
 Flute Mail is an **email provider aggregator**, a powerful cloud service that allows you to 
 configure and use multiple email APIs such as 
 SendGrid, Postmark, SparkPost, or any SMTP server. Just sign up for a Flute Mail account, and hook
-up your API keys from different providers. Then set up your sending "Environments", which allows
-you to configure which providers you wish to load-balance your requests through. For example you
-might have a "Transactional" environment which sends your email through Postmark, and a "Marketing"
-environment for your bulk email.
+up your API keys from different providers. Then configure your multi-provider sending environments.
+For example you might have a "Transactional" environment which sends your email through Postmark and
+SparkPost and a "Marketing" environment for your bulk email.
 
-Distributing your email sending across multiple providers has many benefits: for example you 
-can send all of your transactional email through Postmark for maximum deliverability (they only 
-allow transactional), while sending your marketing email through SparkPost for cost-effective, 
-high-volume sending. It allows you to improve your deliverability, reliability, and capacity.
-
-Flute Mail also supports **automatic failover redundancy**. That means if SparkPost ever goes down or
-experiences delays (it happens surprisingly often) we automatically route your requests to another
-provider that you've configured. Also if we detect provider-caused spam bounces (such as 
+Why? Flute Mail supports **automatic failover redundancy**. That means if we detect provider-caused spam bounces (such as
 [this](https://mailchannels.zendesk.com/hc/en-us/articles/202191674-Fixing-the-550-5-7-1-RBL-Sender-blocked-IP-or-domain-error)),
 we will automatically send through another provider configured in your environment, ensuring much
-better reliability than any single email provider can ever give you.
+better reliability than any single email provider can ever give you. Also, if SparkPost ever goes down or
+experiences delays (it happens surprisingly often) we automatically route your requests to another
+provider that you've configured.
 
-## What is an "Environment"?
+For more info about how Flute Mail can improve your deliverability, reliability and email ROI, read our
+[technical whitepaper](https://medium.com/@absolutelydo/problems-with-email-apis-especially-sendgrid-244d3311e4ba).
 
-An Flute Mail environment is a set of 3 things:
+## What is an Environment?
+
+Before sending email with Flute, you need to setup at least one "Environment". Basically, this tells us
+which providers to route your email through. For example, you might have a "Marketing" email environment
+which sends your email across Mailgun, and if it detects a spam bounce, resends the email through SparkPost.
+This ensures high reliability and deliverability.
+
+Technically speaking, a Flute Mail Environment is a set of 3 things:
 
 - A domain (such as support.yourcompany.com)
 - A set of primary and redundant providers (e.g. SparkPost and Postmark)
@@ -49,7 +50,7 @@ An Flute Mail environment is a set of 3 things:
 
 Different sending environments allow you to organize your different kinds of email,
 manage your domain reputation (ensure your marketing emails don't affect your critical emails), and
-take advantage of special add-ons and integrations for certain kinds of email.
+take advantage of special add-ons and integrations for certain kinds of email (coming soon).
 
 Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
 
@@ -64,7 +65,7 @@ from your Flute Mail dashboard.
 
 The API key must be provided in the JSON body of the request for POST requests, under the JSON key `access_token` (see examples below).
 
-You must use different API keys to send email from different sending environments.
+Different environments use different API keys.
 
 An API key is NOT required for the GET /v1/email endpoint, since this endpoint can only be used to view
 information about specific email ID's (which are secure UUIDs, version 4).
@@ -92,7 +93,7 @@ r = requests.post('https://api.flutemail.com/v1/email', json={
 })
 ```
 
-# GET /v1/email
+# GET /v1/email/:id
 
 Get information about an email.
 
