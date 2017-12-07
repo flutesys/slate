@@ -37,30 +37,29 @@ For more info about how Flute Mail can improve your deliverability, reliability 
 
 ## What is an Environment?
 
-Before sending email with Flute, you need to setup at least one "Environment". Basically, this tells us
-which providers to route your email through. For example, you might have a "Marketing" email environment
-which sends your email across Mailgun, and if it detects a spam bounce, resends the email through SparkPost.
-This ensures high reliability and deliverability.
+An environment is a virtual email account you send from. Create environments on your Flute Mail dashboard.
 
-Technically speaking, a Flute Mail Environment is a set of 3 things:
+More precisely, you must configure an environment which tells us
+which providers to route your email through. For example, you might have a "Marketing" email environment,
+which sends mail from noreply@mail.yourcompany.com through Mailgun, and if it detects a spam bounce,
+resends the email through SparkPost. This ensures high reliability and deliverability, while also keeping
+your marketing email on a different domain,
+[protecting the sending reputation of your transactional email](https://postmarkapp.com/blog/separate-your-promotional-and-transactional-email-sending).
 
-- A domain (such as support.yourcompany.com)
+Technically speaking, a Flute Mail Environment is just 2 things:
+
+- A from address (e.g. noreply@yourcompany.com)
 - A set of primary and redundant providers (e.g. SparkPost and Postmark)
-- Associated settings and add-ons. 
 
 Different sending environments allow you to organize your different kinds of email,
-manage your domain reputation (ensure your marketing emails don't affect your critical emails), and
-take advantage of special add-ons and integrations for certain kinds of email (coming soon).
+so that your customers can unsubscribe from your marketing email without affecting their
+password resets.
 
 Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
 
-<aside class="notice">
-Remember — all email sent through an environment must match the FROM domain. This helps to protect your deliverability and sending reputation.
-</aside>
-
 # Authentication
 
-Most API requests must be secured with an Environment-specific API key. These keys can be generated 
+API requests must be secured with an Environment-specific API key. These keys can be generated
 from your Flute Mail dashboard.
 
 The API key must be provided in the JSON body of the request for POST requests, under the JSON key `access_token` (see examples below).
@@ -72,7 +71,28 @@ information about specific email ID's (which are secure UUIDs, version 4).
 
 # POST /v1/email
 
-## Send a basic email
+`POST https://api.flutemail.com/v1/email`
+
+## Example: Send a basic email
+
+```shell
+
+curl --request POST \
+  --url https://api.flutemail.com/v1/email \
+  --header 'content-type: application/json' \
+  --data '{
+          	"access_token": MY_ENV_ACCESS_TOKEN,
+          	"environment": MY_ENV_NAME,
+          	"to": [
+          		{
+          			"email": "you@example.com"
+          		}
+          	]
+          	"subject": "rumi says",
+          	"text": "listen to the song of the reed flute"
+          }'
+
+```
 
 ```python
 import requests
@@ -129,22 +149,26 @@ request({
 }
 ```
 
-## POST /v1/email
 
-Send an email using the specified environment.
+Let's send a very simple plaintext email.
 
-### HTTP Request
+Prerequisites:
 
-`POST https://api.flutemail.com/v1/email`
+- `MY_ENV_NAME`: The name of your Flute Mail environment
+- `MY_ENV_ACCESS_TOKEN`: An API key for the above environment
+- `you@example.com`: Where you want to send this test email
 
-### Body Parameters
+<aside class="notice">
+You don't need to specify a FROM email address because this is defined in your Environment.
+</aside>
+
+## Body Parameters
 
 Parameter | Default | Description
 --------- | ------- | -----------
 access_token | required | The environment's access token from the Flute Mail API Tokens dashboard.
 environment | required | The environment's name from the Flute Mail API Tokens dashboard. Must match the environment in `access_token`.
 subject | required | A non-empty string for the email's subject.
-from | required | An object `{name, email}`, where `name` is optional and `email` is required. 
 to | required | An array of objects of `{name, email}`, same as the `from` parameter. At least one must be provided.
 text | `''` | A string for the text content of the email.
 html | `''` | A string for the HTML content of the email.
@@ -155,18 +179,22 @@ images | `[]` | An array of objects of `{name, type, data}`. This is for inline 
 reply_to | `''` | A string for the `Reply-To` header.
 headers | `{}` | Key-value pairing for any other headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
 
-### API Limitations
+## Response
 
-- All strings should be in the UTF-8 charset.
-- All emails have open tracking enabled.
-- The `from` email's domain must match the environment's sending domain configured in the Flute Mail dashboard. Otherwise, the API call will fail (see below).
-- At least one provider must be configured under the environment. Otherwise, the API call will fail (see below).
-- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes). Otherwise, the API call will fail (see below).
-- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email. Otherwise, the API call will fail (see below).
+> A response looks like this:
 
-### Response
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "xxxx-xxxx-xxxx"
+  }
+}
+```
 
-The response will be one of the following:
+The `id` field in the response is your Flute Mail Email ID. This is a permanent reference to this request.
+
+### Status fields
 
 Status | Description
 --------- | -----------
@@ -187,7 +215,7 @@ Code | Description
 422 | One or more quotas exceeded
 500 | Could not queue the email.
 
-### Email Attachments
+## Email Attachments
 
 Field | Type | Description
 --------- | --------- | -----------
@@ -195,217 +223,10 @@ name | string, required | The filename of the attachment, including extension. M
 type | string, required | The MIME type of the attachment; e.g., `text/plain`, `image/jpeg`, `application/pdf`, etc.
 data | string, required | The content of the attachment as a Base64 encoded string. The string should not contain line breaks.
 
-<!-- This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
+# API Limitations
 
-# Authentication
-
-> To authorize, use this code:
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
-
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
-<aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
-</aside>
-
-# Kittens
-
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
-```
-
-This endpoint retrieves all kittens.
-
-### HTTP Request
-
-`GET http://example.com/api/kittens`
-
-### Query Parameters
-
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
-
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
-
-### HTTP Request
-
-`GET http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to retrieve
-
-## Delete a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint retrieves a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
- -->
+- All strings should be in the UTF-8 charset.
+- All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
+- At least one provider must be configured under the environment. Otherwise, the API call will fail.
+- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes).
+- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email.
