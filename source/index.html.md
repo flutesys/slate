@@ -16,6 +16,8 @@ search: true
 
 Welcome to the Flute Mail Web API Reference and developer docs.
 
+<br><br><br>
+
 ## What is Flute Mail?
 
 Flute Mail is an **email provider aggregator**, a powerful cloud service that allows you to 
@@ -34,6 +36,8 @@ provider that you've configured.
 
 For more info about how Flute Mail can improve your deliverability, reliability and email ROI, read our
 [technical whitepaper](https://medium.com/@absolutelydo/problems-with-email-apis-especially-sendgrid-244d3311e4ba).
+
+<br><br><br><br><br><br>
 
 ## What is an Environment?
 
@@ -57,6 +61,8 @@ password resets.
 
 Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
 
+<br><br><br><br><br><br><br><br><br>
+
 # Authentication
 
 API requests must be secured with an Environment-specific API key. These keys can be generated
@@ -69,9 +75,13 @@ Different environments use different API keys.
 An API key is NOT required for the GET /v1/email endpoint, since this endpoint can only be used to view
 information about specific email ID's (which are secure UUIDs, version 4).
 
+<br><br><br><br><br><br><br><br><br>
+
 # POST /v1/email
 
 `POST https://api.flutemail.com/v1/email`
+
+Send an email.
 
 ## Example: Send a basic email
 
@@ -166,18 +176,26 @@ You don't need to specify a FROM email address because this is defined in your E
 
 Parameter | Default | Description
 --------- | ------- | -----------
-access_token | required | The environment's access token from the Flute Mail API Tokens dashboard.
-environment | required | The environment's name from the Flute Mail API Tokens dashboard. Must match the environment in `access_token`.
+environment | required | The environment name from the Flute Mail dashboard.
+access_token | required | This environments access token string key. [Get it here.](https://dashboard.flutemail.com/developers/api/tokens)
 subject | required | A non-empty string for the email's subject.
-to | required | An array of objects of `{name, email}`, same as the `from` parameter. At least one must be provided.
+to | required | An array of objects of `{"name": "", "email": ""}`. At least one must be provided.
 text | `''` | A string for the text content of the email.
 html | `''` | A string for the HTML content of the email.
-cc | `[]` | An array of objects of `{name, email}`, same as the `to` parameter. Emails will be sent to these addresses, and they will be listed under the CC header.
-bcc | `[]` | An array of objects of `{name, email}`, same as the `to` parameter. Emails will be sent to these addresses, but their email addresses will not be visible to recipients.
+cc | `[]` | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, and they will be listed under the CC header.
+bcc | `[]` | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, but their email addresses will not be visible to other recipients.
 attachments | `[]` | An array of objects of `{name, type, data}`. See below for specification.
 images | `[]` | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.
-reply_to | `''` | A string for the `Reply-To` header.
-headers | `{}` | Key-value pairing for any other headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
+reply_to | `''` | A valid email address for the `Reply-To` header.
+headers | `{}` | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
+
+## API Limitations
+
+- All strings should be in the UTF-8 charset.
+- All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
+- At least one provider must be configured under the environment. Otherwise, the API call will fail.
+- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes).
+- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email.
 
 ## Response
 
@@ -223,10 +241,19 @@ name | string, required | The filename of the attachment, including extension. M
 type | string, required | The MIME type of the attachment; e.g., `text/plain`, `image/jpeg`, `application/pdf`, etc.
 data | string, required | The content of the attachment as a Base64 encoded string. The string should not contain line breaks.
 
-# API Limitations
+<br><br><br>
 
-- All strings should be in the UTF-8 charset.
-- All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
-- At least one provider must be configured under the environment. Otherwise, the API call will fail.
-- The entire payload (all body parameters stringified) cannot exceed 20 MB (i.e. 20971520 bytes).
-- Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 characters in name and email.
+## Example: Send email attachment
+
+TODO
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+# GET /v1/email
+
+Retrieve information about an email sent.
+
+TODO
