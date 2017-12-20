@@ -20,17 +20,17 @@ Welcome to the Flute Mail Web API Reference and developer docs.
 
 ## What is Flute Mail?
 
-Flute Mail is an **email provider aggregator**, a powerful cloud service that allows you to 
+Flute Mail is an email **delivery optimization platform**, a cloud service that allows you to
 configure and use multiple email APIs such as 
 SendGrid, Postmark, SparkPost, or any SMTP server. Just sign up for a Flute Mail account, and hook
 up your API keys from different providers. Then configure your multi-provider sending environments.
-For example you might have a "Transactional" environment which sends your email through Postmark and
+For example you might have a "Transactional" environment which load-balances your email through Postmark and
 SparkPost and a "Marketing" environment for your bulk email.
 
 Why? Flute Mail supports **automatic failover redundancy**. That means if we detect provider-caused spam bounces (such as
 [this](https://mailchannels.zendesk.com/hc/en-us/articles/202191674-Fixing-the-550-5-7-1-RBL-Sender-blocked-IP-or-domain-error)),
 we will automatically send through another provider configured in your environment, ensuring much
-better reliability than any single email provider can ever give you. Also, if SparkPost ever goes down or
+better IP reliability than any single email provider can ever give you. Also, if a provider ever goes down or
 experiences delays (it happens surprisingly often) we automatically route your requests to another
 provider that you've configured.
 
@@ -41,7 +41,7 @@ For more info about how Flute Mail can improve your deliverability, reliability 
 
 ## What is an Environment?
 
-An environment is a virtual email account you send from. Create environments on your Flute Mail dashboard.
+An environment is a virtual email account you send requests from. Create environments on your Flute Mail dashboard.
 
 More precisely, you must configure an environment which tells us
 which providers to route your email through. For example, you might have a "Marketing" email environment,
@@ -52,12 +52,13 @@ your marketing email on a different domain,
 
 Technically speaking, a Flute Mail Environment is just 2 things:
 
-- A from address (e.g. noreply@yourcompany.com)
+- A from address and name (e.g. Your Name, support@yourcompany.com)
 - A set of primary and redundant providers (e.g. SparkPost and Postmark)
 
 Different sending environments allow you to organize your different kinds of email,
 so that your customers can unsubscribe from your marketing email without affecting their
-password resets.
+password resets. It also makes it easier to analyze the deliverability of different types
+of email.
 
 Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
 
@@ -66,7 +67,9 @@ Configure your email sending environments on your Flute Mail [dashboard](https:/
 # Authentication
 
 API requests must be secured with an Environment-specific API key. These keys can be generated
-from your Flute Mail dashboard.
+from your Flute Mail dashboard. Note that our API keys are very long strings, sometimes 600 characters
+in length. We use these long JWT tokens for performance reasons, and also to encourage better key
+storage practices.
 
 The API key must be provided in the JSON body of the request for POST requests, under the JSON key `access_token` (see examples below).
 
@@ -105,49 +108,46 @@ curl --request POST \
 ```
 
 ```python
-TODO
 import requests
 
-r = requests.post('https://api.flutemail.com/v1/email', json={
-    "access_token": MY_ENVIRONMENT_NAME_ACCESS_TOKEN,
-    "subject": "test email subject",
-    "text": "test email content",
-    "to": [
-        {
-            "email": "you@example.com",
-        }
-    ],
-    "from": {
-        "name": "Flute",
-        "email": "flute_test_sender@flutemail.io"
-    }
-})
+payload = {
+        "access_token": MY_ENV_ACCESS_TOKEN,
+        "environment": MY_ENV_NAME,
+        "to": [
+                {
+                        "email": 'you@example.com'
+                }
+        ],
+        "subject": "rumi says",
+        "text": "listen to the song of the reed flute"
+}
+
+response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload)
+
+print(response.json())
 ```
 
 ```javascript
-TODO
-const request = require('request-promise');
+var request = require("request");
 
-request({
-        method: 'POST',
-        uri: 'https://api.flutemail.com/v1/email',
-        headers: {},
-        body: {
-          "access_token": MY_ENVIRONMENT_NAME_ACCESS_TOKEN,
-          "subject": "test email subject",
-          "text": "test email content",
-          "to": [
-              {
-                  "email": "you@example.com",
-              }
-          ],
-          "from": {
-              "name": "Flute",
-              "email": "flute_test_sender@flutemail.io"
-          }
-        },
-        json: true,
-      })
+var options = { method: 'POST',
+  url: 'https://api.flutemail.com/v1/email',
+  headers:
+   { 'Content-Type': 'application/json' },
+  body:
+   { access_token: '{{MY_ENV_ACCESS_TOKEN}}',
+     environment: '{{MY_ENV_NAME}}',
+     to: [ { email: 'you@example.com' } ],
+     subject: 'rumi says',
+     text: 'listen to the song of the reed flute' },
+  json: true };
+
+request(options, function (error, response, body) {
+  if (error) throw new Error(error);
+
+  console.log(body);
+});
+
 ```
 
 > You should get a JSON response that looks like this:
@@ -231,12 +231,14 @@ Code | Description
 400 | One or more inputs are badly formed.
 401 | Environment not found, does not have providers configured or access token is invalid.
 403 | Access token was not specified.
-413 | Payload is too large (exceeds 20 MB)
+413 | Payload is too large (exceeds 6 MB)
 415 | Input is not in JSON format.
 422 | One or more quotas exceeded
 500 | Could not queue the email.
 
 ## Email Attachments
+
+Email attachments are simply JSON objects that look like this `{"name": "filename.pdf", "type": "application/pdf", "data": "base64 encoded string"}`
 
 Field | Type | Description
 --------- | --------- | -----------
@@ -246,7 +248,7 @@ data | string, required | The content of the attachment as a Base64 encoded stri
 
 <br><br><br>
 
-## Example: Send email attachment
+## Example: Send email with attachment
 
 TODO
 
