@@ -71,8 +71,6 @@ from your Flute Mail dashboard. Note that our API keys are very long strings, so
 in length. We use these long JWT tokens for performance reasons, and also to encourage better key
 storage practices.
 
-The API key must be provided in the JSON body of the request for POST requests, under the JSON key `access_token` (see examples below).
-
 Different environments use different API keys.
 
 An API key is NOT required for the GET /v1/email endpoint, since this endpoint can only be used to view
@@ -132,7 +130,7 @@ var options = { method: 'POST',
   url: 'https://api.flutemail.com/v1/email',
   headers:
    { 
-     'Content-Type': 'application/json'
+     'Content-Type': 'application/json',
      'Authorization': 'Basic ' + Buffer.from(`${MY_ENV_ACCESS_TOKEN}:${MY_ENV_NAME}`).toString('base64')
   },
   body:
@@ -263,8 +261,221 @@ TODO
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-# GET /v1/email
+# GET /v1/email/:id
 
-Retrieve information about an email sent.
+`POST https://api.flutemail.com/v1/email/:id`
 
-TODO
+Send an email.
+
+## Entities
+
+A recipient object looks like this:
+```json
+      {
+        "id": "1__EMAIL_ID",
+        "to": "to@flutemail.com",
+        "providerId": "xxxx-xxxx-xxxx",
+        "providerMessageId": "xxxxxxxxxxxxx",
+        "providerType": "provider",
+        "requestStatus": "SUCCESS",
+        "openStatus": "OPENED"
+      }
+```
+
+- `id` is a concatenation of the index of the recipient, two underscores and the email ID.
+- `to` is the recipient's email address (or, if the recipient's name was provided, it is in `"Name" <email>` format)
+- `requestStatus` is either `SUCCESS`, `FAIL` or `UNKNOWN` (for this recipient only)
+- `openStatus` is either `UNKNOWN` or `OPENED` (if the recipient's read was tracked)
+- `providerType` is the successful (or last, if `requestStatus` is `FAIL`) provider that reached the recipient.
+- `providerId` is the ID of the provider (see provider object below) that reached the recipient.
+- `providerMessageId` is the ID returned by the provider that reached the recipient.
+
+A provider object looks like this:
+
+```json
+      {
+        "id": "xxxx-xxxx-xxxx",
+        "name": "provider"
+      }
+```
+
+- `id` is our internal ID which you can use to query more details about the provider in other endpoints. 
+- `name` is the canonical name of the provider itself.
+
+An environment object looks like this:
+
+```json
+    {
+      "id": "xxxx-xxxx-xxxx",
+      "name": "ENV-NAME",
+      "category": "Transactional",
+      "fromName": "Testing",
+      "fromEmail": "test@flutemail.com",
+      "domain": "flutemail.com",
+      "envMonthlyQuota": 999,
+      "envDailyQuota": 999,
+      "envMonthlyQuotaUsed": 3,
+      "envDailyQuotaUsed": 3,
+      "createdAt": "2017-12-20T21:15:12.041Z",
+      "updatedAt": "2017-12-20T21:31:36.356Z"
+    }
+```
+
+These fields are the same that were used to configure the environment (in the Flute Mail dashboard).
+
+An email body object looks like this:
+
+```json
+    {
+      "to": [
+        {
+          "name": "Name",
+          "email": "email@flutemail.com"
+        }
+      ],
+      "subject": "email subject",
+      "text": "text content",
+      "html": "html content",
+      "attachments": [
+        {
+          "name": "file.jpg",
+          "type": "image/jpeg",
+          "data": "image data here"
+        }
+      ],
+      "images": [
+        {
+          "name": "file.jpg",
+          "type": "image/jpeg",
+          "data": "image data here"
+        }
+      ],
+      "cc": [
+        {
+          "name": "Name",
+          "email": "email@flutemail.com"
+        }
+      ],
+      "bcc": [
+        {
+          "name": "Name",
+          "email": "email@flutemail.com"
+        }
+      ],
+      "headers": {
+        "X-Header": "header content"
+      },
+      "reply_to": "",
+      "from": {
+        "name": "Name",
+        "email": "test@flutemail.com"
+      }
+    }
+```
+
+All of these fields are identical to the ones received when the email object was first created (by the POST /v1/email endpoint)
+
+## Example: Retrieve an email
+
+```shell
+
+curl --request GET \
+  --url https://api.flutemail.com/v1/email/{EMAIL_ID} \
+  --header 'content-type: application/json' \
+
+```
+
+```python
+import requests
+
+response = requests.request("GET", "https://api.flutemail.com/v1/email/" + EMAIL_ID)
+
+print(response.json())
+```
+
+```javascript
+var request = require("request");
+
+var options = { method: 'GET',
+  url: 'https://api.flutemail.com/v1/email/' + EMAIL_ID,
+  headers:
+   { 
+     'Content-Type': 'application/json'
+  },
+  qs:
+   { 
+     includeBody: true,
+     includeRecipients: true,
+     includeEnvironment: true,
+    },
+  json: true };
+
+request(options, function (error, response, body) {
+  if (error) throw new Error(error);
+
+  console.log(body);
+});
+
+```
+
+> You should get a JSON response that looks like this:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "xxxx-xxxx-xxxx",
+    "subject": "email subject",
+    "from": "\"From\" <from@flutemail.com>",
+    "to": "to@flutemail.com",
+    "requestStatus": "SUCCESS",
+    "createdAt": "2017-12-21T18:26:56.452Z",
+    "updatedAt": "2017-12-21T18:26:56.452Z",
+    "errors": [],
+
+    "providersAttempted": [],
+    "recipients": [],
+    "envObject": {},
+    "emailObject": {}
+  }
+}
+```
+
+
+Let's retrieve an email.
+
+Prerequisites:
+
+- `EMAIL_ID`: The ID of the email you want to retrieve.
+
+## Query Parameters
+
+Parameter | Default | Description
+--------- | ------- | -----------
+includeBody | false | If true, then `emailObject` will be added in the response body. (By default, it is not included)
+includeRecipients | false | If true, then `recipients` will be added in the response body. (By default, it is not included)
+includeEnvironment | false | If true, then `envObject` will be added in the response body. (By default, it is not included)
+
+## Status fields
+
+Status | Description
+--------- | -----------
+success | The email was successfully retrieved.
+fail | The email was not found.
+error | Internal server error.
+
+## Response Fields
+
+Field | Description
+--------- | -----------
+id | Same as the parameter that was given.
+providersAttempted | An array of provider objects. These are all of the providers that were attempted when trying to send the email.
+subject | Email subject.
+from | Email "from" string (comma-delimited with emails).
+requestStatus | Either one of `SUCCESS`, `FAIL`, `PENDING`. `SUCCESS` means that the email was successfully sent through a provider. `FAIL` means all providers were attempted.
+createdAt | The timestamp of when the request to send the email was received by our servers.
+updatedAt | The last timestamp of when the email was modified in any way.
+errors | An array of strings. If this is non-empty, the requestStatus should be `FAIL`.
+recipients | An array of recipient objects. This is only provided if `includeRecipients` is true.
+envObject | The environment object. This is only provided if `includeEnvironment` is true.
+emailObject | The email object. This is only provided if `includeBody` is true.
