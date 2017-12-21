@@ -110,9 +110,11 @@ curl --request POST \
 ```python
 import requests
 
+headers = {
+  "Authorization": MY_ENV_NAME + ":" + MY_ENV_ACCESS_TOKEN
+}
+
 payload = {
-        "access_token": MY_ENV_ACCESS_TOKEN,
-        "environment": MY_ENV_NAME,
         "to": [
                 {
                         "email": 'you@example.com'
@@ -122,7 +124,7 @@ payload = {
         "text": "listen to the song of the reed flute"
 }
 
-response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload)
+response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload, headers=headers)
 
 print(response.json())
 ```
@@ -133,10 +135,12 @@ var request = require("request");
 var options = { method: 'POST',
   url: 'https://api.flutemail.com/v1/email',
   headers:
-   { 'Content-Type': 'application/json' },
+   { 
+     'Content-Type': 'application/json'
+     'Authorization': `${MY_ENV_ACCESS_TOKEN}:${MY_ENV_NAME}`
+  },
   body:
-   { access_token: '{{MY_ENV_ACCESS_TOKEN}}',
-     environment: '{{MY_ENV_NAME}}',
+   { 
      to: [ { email: 'you@example.com' } ],
      subject: 'rumi says',
      text: 'listen to the song of the reed flute' },
@@ -174,12 +178,16 @@ Prerequisites:
 You don't need to specify a FROM email address because this is defined in your Environment.
 </aside>
 
+## Headers
+
+- Only JSON body will be accepted and returned by the API.
+- The `Authorization` header is Basic Auth, where the username is your environment name and the password is the same environment's access token key (which is already Base64-encoded). [Get your access token here.](https://dashboard.flutemail.com/developers/api/tokens)
+- If you do not specify the `Authorization` header, you can specify `environment` and `access_token` as body parameters instead.
+
 ## Body Parameters
 
 Parameter | Default | Description
 --------- | ------- | -----------
-environment | required | The environment name from the Flute Mail dashboard.
-access_token | required | This environments access token string key. [Get it here.](https://dashboard.flutemail.com/developers/api/tokens)
 subject | required | A non-empty string for the email's subject.
 to | required | An array of objects of `{"name": "", "email": ""}`. At least one must be provided.
 text | `''` | A string for the text content of the email.
@@ -190,6 +198,8 @@ attachments | `[]` | An array of objects of `{name, type, data}`. See below for 
 images | `[]` | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.
 reply_to | `''` | A valid email address for the `Reply-To` header.
 headers | `{}` | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
+environment | `''` | The environment name from the Flute Mail dashboard. Overrides `Authorization`, if specified.
+access_token | `''` | This environments access token string key. Overrides `Authorization`, if specified.
 
 ## API Limitations
 
