@@ -110,10 +110,6 @@ curl --request POST \
 ```python
 import requests
 
-headers = {
-  "Authorization": MY_ENV_NAME + ":" + MY_ENV_ACCESS_TOKEN
-}
-
 payload = {
         "to": [
                 {
@@ -124,7 +120,7 @@ payload = {
         "text": "listen to the song of the reed flute"
 }
 
-response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload, headers=headers)
+response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload, auth=(MY_ENV_NAME, MY_ENV_ACCESS_TOKEN))
 
 print(response.json())
 ```
@@ -137,7 +133,7 @@ var options = { method: 'POST',
   headers:
    { 
      'Content-Type': 'application/json'
-     'Authorization': `${MY_ENV_ACCESS_TOKEN}:${MY_ENV_NAME}`
+     'Authorization': 'Basic ' + Buffer.from(`${MY_ENV_ACCESS_TOKEN}:${MY_ENV_NAME}`).toString('base64')
   },
   body:
    { 
