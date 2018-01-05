@@ -88,20 +88,15 @@ Send an email.
 
 ```shell
 
-curl --request POST \
-  --url https://api.flutemail.com/v1/email \
-  --header 'content-type: application/json' \
-  --data '{
-          	"access_token": MY_ENV_ACCESS_TOKEN,
-          	"environment": MY_ENV_NAME,
-          	"to": [
-          		{
-          			"email": "you@example.com"
-          		}
-          	]
-          	"subject": "rumi says",
-          	"text": "listen to the song of the reed flute"
-          }'
+curl -X POST \
+  https://api.flutemail.com/v1/email \
+  -u $MY_ENV_NAME:$MY_ENV_TOKEN \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"to": [{"email": "you@example.com"}],
+	"subject": "rumi says",
+	"text": "listen to the song of the reed flute"
+}'
 
 ```
 
