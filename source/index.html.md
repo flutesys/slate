@@ -66,15 +66,31 @@ Configure your email sending environments on your Flute Mail [dashboard](https:/
 
 # Authentication
 
-API requests must be secured with an Environment-specific API key. These keys can be generated
-from your Flute Mail dashboard. Note that our API keys are very long strings, sometimes 600 characters
+Every API request must be authenticated with a username and password. The username is your Environment
+ID-Name and the password is an API key for that environment. These keys can be generated
+from your Flute Mail dashboard. 
+
+Different environments must use different API keys. A key may only be viewed once, at the time you create it,
+because we hash our keys for security reasons.
+
+Note that our API keys are very long strings, about 300 characters
 in length. We use these long JWT tokens for performance reasons, and also to encourage better key
 storage practices.
 
-Different environments use different API keys.
+## Web API Authentication
 
-An API key is NOT required for the GET /v1/email endpoint, since this endpoint can only be used to view
-information about specific email ID's (which are secure UUIDs, version 4).
+- You must set an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), where the user is your environment ID-Name and the password is an access token key for that environment.
+- Instead of an `Authorization` header, you may also specify `environment` and `access_token` as JSON body parameters.
+
+## SMTP API Authentication
+
+You may also use our SMTP relay to send email from a Flute environment. However please note that the
+web API is preferred whenever possible, as SMTP is a significantly slower protocol.
+
+- **Server:** smtp.flutemail.com
+- **Port:** 587 (TLS required, STARTTLS)
+- **Username:** Your environment ID-Name.
+- **Password:** Use an API token key for this environment.
 
 <br><br><br><br><br><br><br><br><br>
 
@@ -90,7 +106,7 @@ Send an email.
 
 curl -X POST \
   https://api.flutemail.com/v1/email \
-  -u $MY_ENV_NAME:$MY_ENV_TOKEN \
+  -u $MY_ENV_IDNAME:$MY_ENV_TOKEN \
   -H 'Content-Type: application/json' \
   -d '{
 	"to": [{"email": "you@example.com"}],
@@ -113,7 +129,7 @@ payload = {
         "text": "listen to the song of the reed flute"
 }
 
-response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload, auth=(MY_ENV_NAME, MY_ENV_ACCESS_TOKEN))
+response = requests.request("POST", "https://api.flutemail.com/v1/email", json=payload, auth=(MY_ENV_IDNAME, MY_ENV_ACCESS_TOKEN))
 
 print(response.json())
 ```
@@ -126,7 +142,7 @@ var options = { method: 'POST',
   headers:
    { 
      'Content-Type': 'application/json',
-     'Authorization': 'Basic ' + Buffer.from(`${MY_ENV_ACCESS_TOKEN}:${MY_ENV_NAME}`).toString('base64')
+     'Authorization': 'Basic ' + Buffer.from(`${MY_ENV_ACCESS_TOKEN}:${MY_ENV_IDNAME}`).toString('base64')
   },
   body:
    { 
@@ -159,7 +175,7 @@ Let's send a very simple plaintext email.
 
 Prerequisites:
 
-- `MY_ENV_NAME`: The name of your Flute Mail environment
+- `MY_ENV_IDNAME`: The ID-Name of your Flute Mail environment
 - `MY_ENV_ACCESS_TOKEN`: An API key for the above environment
 - `you@example.com`: Where you want to send this test email
 
@@ -169,9 +185,8 @@ You don't need to specify a FROM email address because this is defined in your E
 
 ## Headers
 
-- Only JSON body will be accepted and returned by the API.
-- The `Authorization` header is Basic Auth, where the username is your environment name and the password is the same environment's access token key (which is already Base64-encoded). [Get your access token here.](https://dashboard.flutemail.com/developers/api/tokens)
-- If you do not specify the `Authorization` header, you can specify `environment` and `access_token` as body parameters instead.
+- Only an HTTP `Content-Type: application/json` will be accepted and returned by the API.
+- See `Authorization` headers above.
 
 ## Body Parameters
 
@@ -187,7 +202,7 @@ attachments | `[]` | An array of objects of `{name, type, data}`. See below for 
 images | `[]` | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.
 reply_to | `''` | A valid email address for the `Reply-To` header.
 headers | `{}` | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.
-environment | `''` | The environment name from the Flute Mail dashboard. Overrides `Authorization`, if specified.
+environment | `''` | The environment ID-Name from the Flute Mail dashboard. Overrides `Authorization`, if specified.
 access_token | `''` | This environments access token string key. Overrides `Authorization`, if specified.
 
 ## API Limitations
