@@ -21,7 +21,7 @@ configure and use multiple email APIs such as
 SendGrid, Postmark, SparkPost, or any SMTP server,
 while maintaining your own logs and stats.
 
-We also support **automatic failover redundancy**.
+We also invented **Smart Failover**.
 That means if we detect provider-caused spam bounces (such as
 [this](https://mailchannels.zendesk.com/hc/en-us/articles/202191674-Fixing-the-550-5-7-1-RBL-Sender-blocked-IP-or-domain-error)),
 we will automatically send through another provider configured in your environment, ensuring much
@@ -36,7 +36,8 @@ For more info about how Flute Mail can improve your deliverability, reliability 
 
 ## What is a Virtual Flute?
 
-A Virtual Flute is like an email account. You would have seperate Flutes for different types of transactional
+A Virtual Flute is a unique email account. Each Virtual Flute comes with its own API credentials and logs.
+You might have seperate Flutes for different types of transactional
 emails that you regularly send, such as reminders, receipts, developer notifications, etc. This makes it easier
 to search, route, analyze, and improve the deliverability of your email.
 
@@ -48,32 +49,49 @@ A Virtual Flute has 3 key components:
 
 ### Example
 
-A small company might have 3 virtual flutes:
+A small company might have 4 virtual flutes:
 
-*   dev@yourcompany.api.flutemail.com for their development testing emails
-*   marketing@yourcompany.api.f
-    More precisely, you must configure an environment which tells us
-    which providers to route your email through. For example, you might have a "Marketing" email environment,
-    which sends mail from noreply@mail.yourcompany.com through Mailgun, and if it detects a spam bounce,
+*   A "transactional" flute, which appears from support@yourcompany.com, used to send important
+    transactional emails like reminders and password resets.
+*   A "marketing" flute, which appears from noreply@mail.yourcompany.com, sent through Mailgun, and if it detects a spam bounce,
     resends the email through SparkPost. This ensures high reliability and deliverability, while also keeping
     your marketing email on a different domain,
     [protecting the sending reputation of your transactional email](https://postmarkapp.com/blog/separate-your-promotional-and-transactional-email-sending).
+*   A "personal" flute, which appears from ceo@yourcompany.com, used to send a low-volume of highly critical
+    messages through GMail's SMTP servers to get the benefit of GMail's high reliability and reputation.
+*   A "dev" flute for testing messages and developer notifications.
 
-Technically speaking, a Flute Mail Environment is just 2 things:
+### Best practices
 
-Different sending environments allow you to organize your different kinds of email,
-so that your customers can unsubscribe from your marketing email without affecting their
-password resets. It also makes it easier to analyze the deliverability of different types
-of email.
+### Guideline 1: High granularity
 
-Configure your email sending environments on your Flute Mail [dashboard](https://dashboard.flutemail.com/).
+Generally speaking, the more granular your flutes are, the better. There is virtually no limit to
+how many flutes you can create. Sending different types of email through a different flutes makes it
+easier to isolate issues and follow-up on logs later. It also makes it easier to unsubscribe
+users from certain types of emails, without blocking critical ones.
+
+### Guideline 2: Have a redundant Smart Failover provider
+
+Always configure your flute to have a redundant "smart failover" provider, so that if emails
+fail through the primary provider (for whatever reason), your emails still gets delivered.
+
+### Guideline 3: Consider having your Smart Failover provider on a different domain
+
+Having your redundant provider on a different domain helps to protect against random domain
+reputation issues. For example you might send from yourcompany.com and yourcompanymail.com. Most
+businesses have multiple domains for different purposes (testing, etc.).
+
+### Have an expert take a look.
+
+We're happy to assist users in designing and implementing a good email strategy. [Contact us](https://www.flutemail.com/support) for
+more info.
 
 <br><br><br><br><br><br><br><br><br>
 
 # Authentication
 
 Every API request must be authenticated with a username and password. The username is your Environment
-ID-Name and the password is an API key for that environment. These keys can be generated
+`username` and the password is an API key for that environment. These keys can be generated
 from your Flute Mail dashboard.
 
 Different environments must use different API keys. A key may only be viewed once, at the time you create it,
@@ -85,7 +103,7 @@ storage practices.
 
 ## Web API Authentication
 
-*   You must set an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), where the user is your environment ID-Name and the password is an access token key for that environment.
+*   You must set an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), where the user is your environment `username` and the password is an access token key for that environment.
 *   Instead of an `Authorization` header, you may also specify `environment` and `access_token` as JSON body parameters.
 
 ## SMTP API Authentication
@@ -95,7 +113,7 @@ web API is preferred whenever possible, as SMTP is a significantly slower protoc
 
 *   **Server:** smtp.flutemail.com
 *   **Port:** 587 (TLS required, STARTTLS)
-*   **Username:** Your environment ID-Name.
+*   **Username:** Your environment `username`.
 *   **Password:** Use an API token key for this environment.
 
 <br><br><br><br><br><br><br><br><br>
@@ -135,7 +153,7 @@ Let's send a very simple plaintext email.
 
 Prerequisites:
 
-*   `MY_ENV_IDNAME`: The ID-Name of your Flute Mail environment
+*   `MY_ENV_IDNAME`: The `username` of your Flute Mail environment
 *   `MY_ENV_ACCESS_TOKEN`: An API key for the above environment
 *   `you@example.com`: Where you want to send this test email
 
@@ -162,7 +180,7 @@ You don't need to specify a FROM email address because this is defined in your E
 | images       | `[]`     | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.                                                                                       |
 | reply_to     | `''`     | A valid email address for the `Reply-To` header.                                                                                                                                           |
 | headers      | `{}`     | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.                               |
-| environment  | `''`     | The environment ID-Name from the Flute Mail dashboard. Overrides `Authorization`, if specified.                                                                                            |
+| environment  | `''`     | The environment `username` from the Flute Mail dashboard. Overrides `Authorization`, if specified.                                                                                         |
 | access_token | `''`     | This environments access token string key. Overrides `Authorization`, if specified.                                                                                                        |
 
 ## API Limitations
