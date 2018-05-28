@@ -90,37 +90,34 @@ more info.
 
 # Authentication
 
-Every API request must be authenticated with a username and password. The username is your Environment
-`username` and the password is an API key for that environment. These keys can be generated
+Your API endpoint: `https://$SUBDOMAIN.api.flutemail.com/v1/`. Note your subdomain created at the time of signing up for Flute Mail.
+
+Every API request must be authenticated with a username and password. The username is your Virtual Flute
+`username` and the password is an API key for that flute. These keys can be generated
 from your Flute Mail dashboard.
 
-Different environments must use different API keys. A key may only be viewed once, at the time you create it,
-because we hash our keys for security reasons.
+Different flutes must use different API keys. A key may only be viewed once, so save your keys in a credentials config file, and design your code so
+that it can use different username/key pairs for different types of email.
 
-Note that our API keys are very long strings, about 300 characters
-in length. We use these long JWT tokens for performance reasons, and also to encourage better key
-storage practices.
+### Web API Authentication
 
-## Web API Authentication
+*   Every request must have an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), with the Virtual Flute `username` and API `key` string as the password.
 
-*   You must set an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), where the user is your environment `username` and the password is an access token key for that environment.
-*   Instead of an `Authorization` header, you may also specify `environment` and `access_token` as JSON body parameters.
-
-## SMTP API Authentication
+### SMTP API Authentication
 
 You may also use our SMTP relay to send email from a Flute environment. However please note that the
 web API is preferred whenever possible, as SMTP is a significantly slower protocol.
 
 *   **Server:** smtp.flutemail.com
 *   **Port:** 587 (TLS required, STARTTLS)
-*   **Username:** Your environment `username`.
+*   **Username:** Your Virtual Flute `username`.
 *   **Password:** Use an API token key for this environment.
 
 <br><br><br><br><br><br><br><br><br>
 
 # POST /v1/email
 
-`POST https://api.flutemail.com/v1/email`
+`POST https://$SUBDOMAIN.api.flutemail.com/v1/email`
 
 Send an email.
 
