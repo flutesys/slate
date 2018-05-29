@@ -37,7 +37,7 @@ For more info about how Flute Mail can improve your deliverability, reliability 
 ## What is a Virtual Flute?
 
 A Virtual Flute is a unique email account. Each Virtual Flute comes with its own API credentials and logs.
-You might have seperate Flutes for different types of transactional
+You might have seperate flutes for different types of transactional
 emails that you regularly send, such as reminders, receipts, developer notifications, etc. This makes it easier
 to search, route, analyze, and improve the deliverability of your email.
 
@@ -46,6 +46,11 @@ A Virtual Flute has 3 key components:
 *   `username`: A name used to identify and authenticate this flute
 *   `providers`: A set of different providers such as AWS, SendGrid, etc., used to send email
 *   `sentbox`: A searchable log of all the emails sent through this flute
+
+Note the "From" address of the email sent is determined by the attached `providers`, not by the
+flute itself. So multiple emails sent from the same flute may appear to come from different
+"From" addresses. This is an intentional feature, which gives you powerful delivery-optimization
+features you wouldn't be able to get with a hard-coded "From".
 
 ### Example
 
@@ -65,10 +70,15 @@ A small company might have 4 virtual flutes:
 
 ### Guideline 1: High granularity
 
-Generally speaking, the more granular your flutes are, the better. There is virtually no limit to
-how many flutes you can create. Sending different types of email through a different flutes makes it
+Generally speaking, the more flutes you have for different kinds of transactional email, the better.
+There is virtually no limit to
+how many flutes you can create. Sending different types of email through different flutes makes it
 easier to isolate issues and follow-up on logs later. It also makes it easier to unsubscribe
 users from certain types of emails, without blocking critical ones.
+
+The most important question to ask: is this email "critical" (such as a password reset or a monthly report) or of a
+"promotional" nature (like engagement notifications). These types of emails should be in seperate flutes
+so that you can control the deliverability/reputation of each seperately.
 
 ### Guideline 2: Have a redundant Smart Failover provider
 
@@ -83,7 +93,7 @@ businesses have multiple domains for different purposes (testing, etc.).
 
 ### Have an expert take a look.
 
-We're happy to assist users in designing and implementing a good email strategy. [Contact us](https://www.flutemail.com/support) for
+We're happy to assist users in designing and implementing a solid flute-y email strategy. [Contact us](https://www.flutemail.com/support) for
 more info.
 
 <br><br><br><br><br><br><br><br><br>
