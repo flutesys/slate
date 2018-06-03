@@ -148,9 +148,9 @@ export EMAIL_DEST="you@example.com";
 
 curl -X POST \
   https://$SUBDOMAIN.api.flutemail.com/v1/email \
-  -u $VFLUTE_USERNAME:$VFLUTE_PASS \
-  -H 'Content-Type: application/json' \
-  -d '{
+  --user $VFLUTE_USERNAME:$VFLUTE_PASS \
+  --header 'Content-Type: application/json' \
+  --data '{
 	"to": [{"email": "'$EMAIL_DEST'"}],
 	"subject": "rumi says",
 	"text": "listen to the song of the reed flute"
@@ -265,9 +265,10 @@ export VFLUTE_USERNAME="my_virtual_flute_username";
 export VFLUTE_PASS="my_virtual_flute_API_key";
 export EMAIL_ID="email-xxxxxxxxxxxx";
 
-curl --request GET \
-  --url "https://$SUBDOMAIN.api.flutemail.com/v1/email/$EMAIL_ID" \
-  --header 'content-type: application/json' \
+curl -X GET \
+  https://$SUBDOMAIN.api.flutemail.com/v1/email/$EMAIL_ID \
+  --user $VFLUTE_USERNAME:$VFLUTE_PASS \
+  --header 'Content-Type: application/json' \
 ```
 
 > You should get a JSON response that looks like this:
