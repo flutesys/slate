@@ -5,8 +5,10 @@ language_tabs: # must be one of https://git.io/vQNgJ
   - shell
 
 toc_footers:
-  - <a href='https://dashboard.flutemail.com/signup'>Sign Up</a>
-  - <a href='https://dashboard.flutemail.com/login'>Login</a>
+  - <a href='https://dashboard.flutemail.com/signup' target="_blank">Sign Up</a>
+  - <a href='https://dashboard.flutemail.com/login' target="_blank">Login</a>
+  - <a href='https://www.flutemail.com/support' target="_blank">Contact Us</a>
+
 
 
 search: true
