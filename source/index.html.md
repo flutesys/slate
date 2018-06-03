@@ -100,7 +100,7 @@ more info.
 
 # Authentication
 
-Your API endpoint: `https://$SUBDOMAIN.api.flutemail.com/v1/`. Note your subdomain created at the time of signing up for Flute Mail.
+Your API endpoint is `https://$SUBDOMAIN.api.flutemail.com/v1/`. Note the subdomain is unique to each customer.
 
 Every API request must be authenticated with a username and password. The username is your Virtual Flute
 `username` and the password is an API key for that flute. These keys can be generated
@@ -112,7 +112,7 @@ that it can use different username/key pairs for different types of email.
 ### Web API Authentication
 
 ```shell
-$ curl -v -u user:password yoursubdomain.api.flutemail.com
+$ curl -v -u user:password my_subdomain.api.flutemail.com
 ...
 > Authorization: Basic dXNlcjpwYXNzd29yZA==
 ...
@@ -173,7 +173,7 @@ Let's send a very simple plaintext email.
 Variables:
 
 *   `SUBDOMAIN`: Your subdomain
-*   `VFLUTE_USERNAME`: The `username` of your Virtual Flute
+*   `VFLUTE_USERNAME`: The username of your Virtual Flute
 *   `VFLUTE_PASS`: An API key for the same flute
 *   `EMAIL_DEST`: Where you want to send this test email
 
@@ -260,8 +260,13 @@ Email attachments are simply JSON objects that look like this `{"name": "filenam
 ## Example: Retrieve an email
 
 ```shell
+export SUBDOMAIN="my_subdomain";
+export VFLUTE_USERNAME="my_virtual_flute_username";
+export VFLUTE_PASS="my_virtual_flute_API_key";
+export EMAIL_ID="email-xxxxxxxxxxxx";
+
 curl --request GET \
-  --url https://api.flutemail.com/v1/email/{EMAIL_ID} \
+  --url "https://$SUBDOMAIN.api.flutemail.com/v1/email/$EMAIL_ID" \
   --header 'content-type: application/json' \
 ```
 
@@ -282,25 +287,28 @@ curl --request GET \
 
         "providersAttempted": [],
         "recipients": [],
-        "envObject": {},
         "emailObject": {}
     }
 }
 ```
 
-Let's retrieve an email.
+Let's retrieve an email we sent earlier.
 
-Prerequisites:
+Variables:
 
-*   `EMAIL_ID`: The ID of the email you want to retrieve.
+*   `SUBDOMAIN`: Your subdomain
+*   `VFLUTE_USERNAME`: The username of your Virtual Flute
+*   `VFLUTE_PASS`: An API key for the same flute
+*   `EMAIL_ID`: The ID of the email you wish to retrieve (provided at the time of sending)
 
 ## Query Parameters
 
-| Parameter          | Default | Description                                                                                      |
-| ------------------ | ------- | ------------------------------------------------------------------------------------------------ |
-| includeBody        | false   | If true, then `emailObject` will be added in the response body. (By default, it is not included) |
-| includeRecipients  | false   | If true, then `recipients` will be added in the response body. (By default, it is not included)  |
-| includeEnvironment | false   | If true, then `envObject` will be added in the response body. (By default, it is not included)   |
+| Parameter         | Default | Description                                                     |
+| ----------------- | ------- | --------------------------------------------------------------- |
+| includeBody       | false   | If true, then `emailObject` will be added in the response body. |
+| includeRecipients | false   | If true, then `recipients` will be added in the response body.  |
+
+See [Entity Types](#entity-types) for a description of the `emailObject` and `recipients` data.
 
 ## Status fields
 
@@ -323,7 +331,6 @@ Prerequisites:
 | updatedAt          | The last timestamp of when the email was modified in any way.                                                                                                   |
 | errors             | An array of strings. If this is non-empty, the requestStatus should be `FAIL`.                                                                                  |
 | recipients         | An array of recipient objects. This is only provided if `includeRecipients` is true.                                                                            |
-| envObject          | The environment object. This is only provided if `includeEnvironment` is true.                                                                                  |
 | emailObject        | The email object. This is only provided if `includeBody` is true.                                                                                               |
 
 # Entity Types
@@ -349,42 +356,8 @@ A recipient object looks like this:
 *   `requestStatus` is either `SUCCESS`, `FAIL` or `UNKNOWN` (for this recipient only)
 *   `openStatus` is either `UNKNOWN` or `OPENED` (if the recipient's read was tracked)
 *   `providerType` is the successful (or last, if `requestStatus` is `FAIL`) provider that reached the recipient.
-*   `providerId` is the ID of the provider (see provider object below) that reached the recipient.
+*   `providerId` is the ID of the provider that reached the recipient.
 *   `providerMessageId` is the ID returned by the provider that reached the recipient.
-
-## Providers
-
-A provider object looks like this:
-
-```json
-{
-    "id": "xxxx-xxxx-xxxx",
-    "name": "provider"
-}
-```
-
-*   `id` is our internal ID which you can use to query more details about the provider in other endpoints.
-*   `name` is the canonical name of the provider itself.
-
-## Virtual Flutes
-
-A Virtual Flute object looks like this:
-
-```json
-{
-    "id": "xxxx-xxxx-xxxx",
-    "username": "ENV-NAME",
-    "domain": "flutemail.com",
-    "envMonthlyQuota": 999,
-    "envDailyQuota": 999,
-    "envMonthlyQuotaUsed": 3,
-    "envDailyQuotaUsed": 3,
-    "createdAt": "2017-12-20T21:15:12.041Z",
-    "updatedAt": "2017-12-20T21:31:36.356Z"
-}
-```
-
-These fields are the same that were used to configure the Virtual Flute (on the dashboard).
 
 ## Emails
 
