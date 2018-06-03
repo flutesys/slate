@@ -24,7 +24,7 @@ while maintaining your own logs and stats.
 We also invented **Smart Failover**.
 That means if we detect provider-caused spam bounces (such as
 [this](https://mailchannels.zendesk.com/hc/en-us/articles/202191674-Fixing-the-550-5-7-1-RBL-Sender-blocked-IP-or-domain-error)),
-we will automatically send through another provider configured in your environment, ensuring much
+we will automatically send through other configured providers, ensuring much
 better IP reliability than any single email provider can ever give you. Also, if a provider ever goes down or
 experiences delays (it happens surprisingly often) we automatically route your requests to another
 provider that you've configured.
@@ -111,21 +111,28 @@ that it can use different username/key pairs for different types of email.
 
 ### Web API Authentication
 
-*   Every request must have an HTTP `Authorization` header in the [Basic Auth format](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side), with the Virtual Flute `username` and API `key` string as the password.
+```shell
+$ curl -v -u user:password yoursubdomain.api.flutemail.com
+...
+> Authorization: Basic dXNlcjpwYXNzd29yZA==
+...
+```
+
+*   Every request must have an HTTP `Authorization` [Basic](https://majgis.github.io/2017/09/13/Create-Authorization-Basic-Header/) header, composed of the Virtual Flute `username` and API `key` password.
 
 ### SMTP API Authentication
 
-You may also use our SMTP relay to send email from a Flute environment. However please note that the
+You may also use our SMTP relay to send email through a Virtual Flute. However please note that the
 web API is preferred whenever possible, as SMTP is a significantly slower protocol.
 
 *   **Server:** smtp.flutemail.com
 *   **Port:** 587 (TLS required, STARTTLS)
 *   **Username:** Your Virtual Flute `username`.
-*   **Password:** Use an API token key for this environment.
+*   **Password:** Any API token key for this flute.
 
 <br><br><br><br><br><br><br><br><br>
 
-# POST /v1/email
+# POST /email
 
 `POST https://$SUBDOMAIN.api.flutemail.com/v1/email`
 
@@ -134,12 +141,17 @@ Send an email.
 ## Example: Send a basic email
 
 ```shell
+export SUBDOMAIN="my_subdomain";
+export VFLUTE_USERNAME="my_virtual_flute_username";
+export VFLUTE_PASS="my_virtual_flute_API_key";
+export EMAIL_DEST="you@example.com";
+
 curl -X POST \
-  https://api.flutemail.com/v1/email \
-  -u $MY_ENV_IDNAME:$MY_ENV_TOKEN \
+  https://$SUBDOMAIN.api.flutemail.com/v1/email \
+  -u $VFLUTE_USERNAME:$VFLUTE_PASS \
   -H 'Content-Type: application/json' \
   -d '{
-	"to": [{"email": "you@example.com"}],
+	"to": [{"email": "'$EMAIL_DEST'"}],
 	"subject": "rumi says",
 	"text": "listen to the song of the reed flute"
 }'
@@ -151,22 +163,21 @@ curl -X POST \
 {
     "status": "success",
     "data": {
-        "id": "xxxx-xxxx-xxxx"
+        "id": "email-xxxxxxxxxxxxx"
     }
 }
 ```
 
 Let's send a very simple plaintext email.
 
-Prerequisites:
+Variables:
 
-*   `MY_ENV_IDNAME`: The `username` of your Flute Mail environment
-*   `MY_ENV_ACCESS_TOKEN`: An API key for the above environment
-*   `you@example.com`: Where you want to send this test email
+*   `SUBDOMAIN`: Your subdomain
+*   `VFLUTE_USERNAME`: The `username` of your Virtual Flute
+*   `VFLUTE_PASS`: An API key for the same flute
+*   `EMAIL_DEST`: Where you want to send this test email
 
-<aside class="notice">
-You don't need to specify a FROM email address because this is defined in your Environment.
-</aside>
+You don't need to specify a FROM address because this is defined by your Virtual Flute's `providers`.
 
 ## Headers
 
@@ -175,26 +186,24 @@ You don't need to specify a FROM email address because this is defined in your E
 
 ## Body Parameters
 
-| Parameter    | Default  | Description                                                                                                                                                                                |
-| ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| subject      | required | A non-empty string for the email's subject.                                                                                                                                                |
-| to           | required | An array of objects of `{"name": "", "email": ""}`. At least one must be provided.                                                                                                         |
-| text         | `''`     | A string for the text content of the email.                                                                                                                                                |
-| html         | `''`     | A string for the HTML content of the email.                                                                                                                                                |
-| cc           | `[]`     | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, and they will be listed under the CC header.                       |
-| bcc          | `[]`     | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, but their email addresses will not be visible to other recipients. |
-| attachments  | `[]`     | An array of objects of `{name, type, data}`. See below for specification.                                                                                                                  |
-| images       | `[]`     | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.                                                                                       |
-| reply_to     | `''`     | A valid email address for the `Reply-To` header.                                                                                                                                           |
-| headers      | `{}`     | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.                               |
-| environment  | `''`     | The environment `username` from the Flute Mail dashboard. Overrides `Authorization`, if specified.                                                                                         |
-| access_token | `''`     | This environments access token string key. Overrides `Authorization`, if specified.                                                                                                        |
+| Parameter   | Default  | Description                                                                                                                                                                                |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| subject     | required | A non-empty string for the email's subject.                                                                                                                                                |
+| to          | required | An array of objects of `{"name": "", "email": ""}`. At least one must be provided.                                                                                                         |
+| text        | `''`     | A string for the text content of the email.                                                                                                                                                |
+| html        | `''`     | A string for the HTML content of the email.                                                                                                                                                |
+| cc          | `[]`     | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, and they will be listed under the CC header.                       |
+| bcc         | `[]`     | An array of objects of `{"name": "", "email": ""}`, same as the `to` parameter. Emails will be sent to these addresses, but their email addresses will not be visible to other recipients. |
+| attachments | `[]`     | An array of objects of `{name, type, data}`. See below for specification.                                                                                                                  |
+| images      | `[]`     | An array of objects of `{name, type, data}`. This is for inline images. See below for specification.                                                                                       |
+| reply_to    | `''`     | A valid email address for the `Reply-To` header.                                                                                                                                           |
+| headers     | `{}`     | Key-value pairing for any other SMTP headers. Headers such as `Subject`, `From`, `To`, `CC` and `Reply-To` will be overwritten and will not be allowed here.                               |
 
 ## API Limitations
 
 *   All JSON string payloads should be UTF-8 encoded.
 *   Each individual recipient in the `to`, `cc` and `bcc` fields cannot exceed 1024 bytes (characters) in name and email.
-*   At least one provider must be configured under the environment. Otherwise, the API call will fail.
+*   At least one provider must be configured for the Virtual Flute. Otherwise, the API call will fail.
 *   The entire payload size (all body parameters stringified, including attachments) cannot exceed 6 MB. (We do this to ensure high performance).
 *   All emails have open tracking enabled, and are therefore converted from plaintext to HTML. [We have reasons for doing this.](https://lwn.net/Articles/735973/)
 
@@ -223,16 +232,16 @@ The `id` field in the response is your Flute Mail Email ID. This is a permanent 
 
 Status codes can be one of the following:
 
-| Code | Description                                                                           |
-| ---- | ------------------------------------------------------------------------------------- |
-| 200  | Successfully queued the email.                                                        |
-| 400  | One or more inputs are badly formed.                                                  |
-| 401  | Environment not found, does not have providers configured or access token is invalid. |
-| 403  | Access token was not specified.                                                       |
-| 413  | Payload is too large (exceeds 6 MB)                                                   |
-| 415  | Input is not in JSON format.                                                          |
-| 422  | One or more quotas exceeded                                                           |
-| 500  | Could not queue the email.                                                            |
+| Code | Description                                                                             |
+| ---- | --------------------------------------------------------------------------------------- |
+| 200  | Successfully queued the email.                                                          |
+| 400  | One or more inputs are badly formed.                                                    |
+| 401  | Virtual Flute not found, does not have providers configured or access token is invalid. |
+| 403  | Access token was not specified.                                                         |
+| 413  | Payload is too large (exceeds 6 MB)                                                     |
+| 415  | Input is not in JSON format.                                                            |
+| 422  | One or more quotas exceeded                                                             |
+| 500  | Could not queue the email.                                                              |
 
 ## Email Attachments
 
@@ -246,128 +255,7 @@ Email attachments are simply JSON objects that look like this `{"name": "filenam
 
 <br><br><br>
 
-## Example: Send email with attachment
-
-TODO
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-# GET /v1/email/:id
-
-`POST https://api.flutemail.com/v1/email/:id`
-
-Send an email.
-
-## Entities
-
-A recipient object looks like this:
-
-```json
-{
-    "id": "1__EMAIL_ID",
-    "to": "to@flutemail.com",
-    "providerId": "xxxx-xxxx-xxxx",
-    "providerMessageId": "xxxxxxxxxxxxx",
-    "providerType": "provider",
-    "requestStatus": "SUCCESS",
-    "openStatus": "OPENED"
-}
-```
-
-*   `id` is a concatenation of the index of the recipient, two underscores and the email ID.
-*   `to` is the recipient's email address (or, if the recipient's name was provided, it is in `"Name" <email>` format)
-*   `requestStatus` is either `SUCCESS`, `FAIL` or `UNKNOWN` (for this recipient only)
-*   `openStatus` is either `UNKNOWN` or `OPENED` (if the recipient's read was tracked)
-*   `providerType` is the successful (or last, if `requestStatus` is `FAIL`) provider that reached the recipient.
-*   `providerId` is the ID of the provider (see provider object below) that reached the recipient.
-*   `providerMessageId` is the ID returned by the provider that reached the recipient.
-
-A provider object looks like this:
-
-```json
-{
-    "id": "xxxx-xxxx-xxxx",
-    "name": "provider"
-}
-```
-
-*   `id` is our internal ID which you can use to query more details about the provider in other endpoints.
-*   `name` is the canonical name of the provider itself.
-
-An environment object looks like this:
-
-```json
-{
-    "id": "xxxx-xxxx-xxxx",
-    "name": "ENV-NAME",
-    "category": "Transactional",
-    "fromName": "Testing",
-    "fromEmail": "test@flutemail.com",
-    "domain": "flutemail.com",
-    "envMonthlyQuota": 999,
-    "envDailyQuota": 999,
-    "envMonthlyQuotaUsed": 3,
-    "envDailyQuotaUsed": 3,
-    "createdAt": "2017-12-20T21:15:12.041Z",
-    "updatedAt": "2017-12-20T21:31:36.356Z"
-}
-```
-
-These fields are the same that were used to configure the environment (in the Flute Mail dashboard).
-
-An email body object looks like this:
-
-```json
-{
-    "to": [
-        {
-            "name": "Name",
-            "email": "email@flutemail.com"
-        }
-    ],
-    "subject": "email subject",
-    "text": "text content",
-    "html": "html content",
-    "attachments": [
-        {
-            "name": "file.jpg",
-            "type": "image/jpeg",
-            "data": "image data here"
-        }
-    ],
-    "images": [
-        {
-            "name": "file.jpg",
-            "type": "image/jpeg",
-            "data": "image data here"
-        }
-    ],
-    "cc": [
-        {
-            "name": "Name",
-            "email": "email@flutemail.com"
-        }
-    ],
-    "bcc": [
-        {
-            "name": "Name",
-            "email": "email@flutemail.com"
-        }
-    ],
-    "headers": {
-        "X-Header": "header content"
-    },
-    "reply_to": "",
-    "from": {
-        "name": "Name",
-        "email": "test@flutemail.com"
-    }
-}
-```
-
-All of these fields are identical to the ones received when the email object was first created (by the POST /v1/email endpoint)
+# GET /email
 
 ## Example: Retrieve an email
 
@@ -437,3 +325,117 @@ Prerequisites:
 | recipients         | An array of recipient objects. This is only provided if `includeRecipients` is true.                                                                            |
 | envObject          | The environment object. This is only provided if `includeEnvironment` is true.                                                                                  |
 | emailObject        | The email object. This is only provided if `includeBody` is true.                                                                                               |
+
+# Entity Types
+
+## Recipients
+
+A recipient object looks like this:
+
+```json
+{
+    "id": "1__EMAIL_ID",
+    "to": "to@flutemail.com",
+    "providerId": "xxxx-xxxx-xxxx",
+    "providerMessageId": "xxxxxxxxxxxxx",
+    "providerType": "provider",
+    "requestStatus": "SUCCESS",
+    "openStatus": "OPENED"
+}
+```
+
+*   `id` is a concatenation of the index of the recipient, two underscores and the email ID.
+*   `to` is the recipient's email address (or, if the recipient's name was provided, it is in `"Name" <email>` format)
+*   `requestStatus` is either `SUCCESS`, `FAIL` or `UNKNOWN` (for this recipient only)
+*   `openStatus` is either `UNKNOWN` or `OPENED` (if the recipient's read was tracked)
+*   `providerType` is the successful (or last, if `requestStatus` is `FAIL`) provider that reached the recipient.
+*   `providerId` is the ID of the provider (see provider object below) that reached the recipient.
+*   `providerMessageId` is the ID returned by the provider that reached the recipient.
+
+## Providers
+
+A provider object looks like this:
+
+```json
+{
+    "id": "xxxx-xxxx-xxxx",
+    "name": "provider"
+}
+```
+
+*   `id` is our internal ID which you can use to query more details about the provider in other endpoints.
+*   `name` is the canonical name of the provider itself.
+
+## Virtual Flutes
+
+A Virtual Flute object looks like this:
+
+```json
+{
+    "id": "xxxx-xxxx-xxxx",
+    "username": "ENV-NAME",
+    "domain": "flutemail.com",
+    "envMonthlyQuota": 999,
+    "envDailyQuota": 999,
+    "envMonthlyQuotaUsed": 3,
+    "envDailyQuotaUsed": 3,
+    "createdAt": "2017-12-20T21:15:12.041Z",
+    "updatedAt": "2017-12-20T21:31:36.356Z"
+}
+```
+
+These fields are the same that were used to configure the Virtual Flute (on the dashboard).
+
+## Emails
+
+An email body object looks like this:
+
+```json
+{
+    "to": [
+        {
+            "name": "Name",
+            "email": "email@flutemail.com"
+        }
+    ],
+    "subject": "email subject",
+    "text": "text content",
+    "html": "html content",
+    "attachments": [
+        {
+            "name": "file.jpg",
+            "type": "image/jpeg",
+            "data": "image data here"
+        }
+    ],
+    "images": [
+        {
+            "name": "file.jpg",
+            "type": "image/jpeg",
+            "data": "image data here"
+        }
+    ],
+    "cc": [
+        {
+            "name": "Name",
+            "email": "email@flutemail.com"
+        }
+    ],
+    "bcc": [
+        {
+            "name": "Name",
+            "email": "email@flutemail.com"
+        }
+    ],
+    "headers": {
+        "X-Header": "header content"
+    },
+    "reply_to": "",
+    "from": {
+        "name": "Name",
+        "email": "test@flutemail.com"
+    }
+}
+```
+
+All of these fields are identical to the ones received when the email object was first created (by the POST /v1/email endpoint)
