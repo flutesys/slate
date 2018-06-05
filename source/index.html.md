@@ -279,18 +279,35 @@ curl -X GET \
 {
     "status": "success",
     "data": {
-        "id": "xxxx-xxxx-xxxx",
-        "subject": "email subject",
-        "from": "\"From\" <from@flutemail.com>",
-        "to": "to@flutemail.com",
+        "id": "email-612a84c2781440c598debc9e3f28b1de",
         "requestStatus": "SUCCESS",
-        "createdAt": "2017-12-21T18:26:56.452Z",
-        "updatedAt": "2017-12-21T18:26:56.452Z",
-        "errors": [],
-
-        "providersAttempted": [],
-        "recipients": [],
-        "emailObject": {}
+        "openStatus": "UNKNOWN",
+        "createdAt": "2018-06-04T11:16:49.577Z",
+        "updatedAt": "2018-06-04T11:18:24.473Z",
+        "source": "API_OUT",
+        "emailObject": {
+            "from": {
+                "name": "Flute Mail SP Tester",
+                "email": "test@flutemail.io"
+            },
+            "to": [
+                {
+                    "name": "Henry Pollock",
+                    "email": "you@example.com"
+                }
+            ],
+            "subject": "this is the subject BANANA",
+            "text": "this is the body text PEANUT BUTTER",
+            "html": "this is the body html PARROT",
+            "attachments": [],
+            "images": [],
+            "cc": [],
+            "bcc": [],
+            "headers": {
+                "X-Flute-Email-ID": "email-612a84c2781440c598debc9e3f28b1de"
+            },
+            "reply_to": ""
+        }
     }
 }
 ```
@@ -308,7 +325,7 @@ Variables:
 
 | Parameter         | Default | Description                                                     |
 | ----------------- | ------- | --------------------------------------------------------------- |
-| includeBody       | false   | If true, then `emailObject` will be added in the response body. |
+| includeBody       | true    | If true, then `emailObject` will be added in the response body. |
 | includeRecipients | false   | If true, then `recipients` will be added in the response body.  |
 
 See [Entity Types](#entity-types) for a description of the `emailObject` and `recipients` data.
@@ -328,13 +345,12 @@ See [Entity Types](#entity-types) for a description of the `emailObject` and `re
 | id                 | Same as the parameter that was given.                                                                                                                           |
 | providersAttempted | An array of provider objects. These are all of the providers that were attempted when trying to send the email.                                                 |
 | subject            | Email subject.                                                                                                                                                  |
-| from               | Email "from" string (comma-delimited with emails).                                                                                                              |
 | requestStatus      | Either one of `SUCCESS`, `FAIL`, `PENDING`. `SUCCESS` means that the email was successfully sent through a provider. `FAIL` means all providers were attempted. |
 | createdAt          | The timestamp of when the request to send the email was received by our servers.                                                                                |
 | updatedAt          | The last timestamp of when the email was modified in any way.                                                                                                   |
 | errors             | An array of strings. If this is non-empty, the requestStatus should be `FAIL`.                                                                                  |
 | recipients         | An array of recipient objects. This is only provided if `includeRecipients` is true.                                                                            |
-| emailObject        | The email object. This is only provided if `includeBody` is true.                                                                                               |
+| emailObject        | The email object. This is only provided if `includeBody` is true                                                                                                |
 
 # Entity Types
 
