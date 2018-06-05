@@ -84,8 +84,8 @@ so that you can control the deliverability/reputation of each seperately.
 
 ### Guideline 2: Have a redundant Smart Failover provider
 
-Always configure your flute to have a redundant "smart failover" provider, so that if emails
-fail through the primary provider (for whatever reason), your emails still gets delivered.
+Always configure your flute to have a redundant "Smart Failover" provider, so that if requests
+fail through the primary provider (for whatever reason), your emails still get delivered.
 
 ### Guideline 3: Consider having your Smart Failover provider on a different domain
 
