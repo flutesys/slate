@@ -128,7 +128,7 @@ You may also use our SMTP relay to send email through a Virtual Flute. However p
 web API is preferred whenever possible, as SMTP is a significantly slower protocol.
 
 *   **Server:** smtp.flutemail.com
-*   **Port:** 587 (TLS required, STARTTLS)
+*   **Port:** 587 (We use a self-signed certificate for SSL/TLS/STARTTLS now - will support verified TLS soon.)
 *   **Username:** Your Virtual Flute `username`.
 *   **Password:** Any API token key for this flute.
 
