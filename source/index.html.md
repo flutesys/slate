@@ -128,27 +128,9 @@ You may also use our SMTP relay to send email through a Virtual Flute. However p
 web API is preferred whenever possible, as SMTP is a significantly slower protocol.
 
 *   **Server:** smtp.flutemail.com
-*   **Port:** 587 (We use a self-signed certificate for SSL/TLS/STARTTLS now - will support verified TLS soon.)
+*   **Port:** 587 (Use STARTTLS / TLS Verify)
 *   **Username:** Your Virtual Flute `username`.
 *   **Password:** Any API token key for this flute.
-
-### Self-signed certs
-
-Here's an example of how to configure Laravel to accept self-signed certs. <br> Edit `config/mail.php`:
-
-<pre class="center-column">
-
-...
-   'stream' => [
-       'ssl' => [
-          'allow_self_signed' => true,
-          'verify_peer' => false,
-          'verify_peer_name' => false,
-       ],
-    ],
-...
-
-</pre>
 
 <br><br><br><br><br><br><br><br><br>
 
